@@ -1,10 +1,11 @@
 from pathlib import Path
 from src.crypto.generator_keys import Keys
+import pytest
 
 #Класс тестирования генерации ключей
 class TestGeneratorKeys:
-    #Метод теста на создание директорий
-    def test_create_dir(self, tmp_path):
+    #Метод теста на пустой пароль
+    def test_blank_password(self, tmp_path):
         keys = Keys(
             dir_name=str(tmp_path),
             sync_key_name="sync_key.pub",
@@ -13,8 +14,8 @@ class TestGeneratorKeys:
             vectore_name="vectore.bin",
             password=""
         )
-        
-        keys.run()
+        with pytest.raises(ValueError):
+            keys.run()
         assert (Path(tmp_path / "sync_key.pub")).exists()
         assert (Path(tmp_path / "async.pem")).exists()
         assert (Path(tmp_path / "async.pub")).exists()
