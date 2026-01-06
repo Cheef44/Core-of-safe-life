@@ -1,21 +1,21 @@
 from Crypto.Random import get_random_bytes
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Cipher import PKCS1_OAEP, AES
 from pathlib import Path
 import os
 import hashlib
 
 #Класс для функция связанных с ключами
 class Keys:
-    def __init__(self, dir_name:str="data", sync_key_name:str="", async_private_key_name:str="", async_public_key_name:str="", vectore_name:str="", password:str=""):
-        self.password = hashlib.sha3_512(bytes(password, encoding="utf-8")).digest()
+    def __init__(self, dir_name:str="data", sync_key_name:str="", async_private_key_name:str="", async_public_key_name:str="", vectore_name:str="", password:str="password"):
+        self.password = password.encode('utf-8')
         
         self.dir_name = Path(dir_name)
         self.sync_key_path = Path(self.dir_name / sync_key_name)
         self.async_public_key_path = Path(self.dir_name / async_public_key_name)
         self.async_private_key_path = Path(self.dir_name / async_private_key_name)
         self.vectore_path = Path(self.dir_name / vectore_name)
-        os.mkdir(self.dir_name) if not os.path.exists(self.dir_name) else None
+        self.dir_name.mkdir(parents=True, exist_ok=True)
     
     #Метод генерации вектора
     def vectore(self):
@@ -31,11 +31,14 @@ class Keys:
     
     #Метод генерации асинхронного ключа
     def gen_async_key(self):
-        keys = RSA.generate(1024)
+        keys = RSA.generate(3072)
         with open(self.async_public_key_path, 'wb') as key_pub:
             key_pub.write(keys.public_key().export_key())
-        with open(self.async_private_key_path, 'wb') as key_private:
-            key_private.write(keys.export_key(format='PEM', passphrase=self.password, protection='PBKDF2WithHMAC-SHA512AndAES256-CBC', prot_params={'iteration_count':131072}))
+        try:
+            with open(self.async_private_key_path, 'wb') as key_private:
+                key_private.write(keys.export_key(format='PEM', passphrase=self.password, protection='PBKDF2WithHMAC-SHA512AndAES256-CBC', prot_params={'iteration_count':131072}))
+        except ValueError:
+            raise ValueError("You have entered a blank password. Passwords cannot be blank. Default password: password")
     
     #Метод шифрования синхронного ключа с помощью асинхронного шифрования
     def synchronous_key_encryption(self):
