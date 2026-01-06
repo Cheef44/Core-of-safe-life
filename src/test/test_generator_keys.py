@@ -36,3 +36,21 @@ class TestGeneratorKeys:
         assert (Path(tmp_path / "async.pem")).stat().st_size > 0
         assert (Path(tmp_path / "async.pub")).stat().st_size > 0
         assert (Path(tmp_path / "vectore.bin")).stat().st_size == 16
+    
+    #Метод теста на создание ключей без шифрования синхронного ключа
+    def test_no_encrypt_sync_key(self, tmp_path):
+        keys = Keys(
+            dir_name=str(tmp_path),
+            sync_key_name="sync_key.pub",
+            async_private_key_name="async.pem",
+            async_public_key_name="async.pub",
+            vectore_name="vectore.bin",
+        )
+        
+        keys.gen_sync_key()
+        keys.gen_async_key()
+        keys.vectore()
+        assert (Path(tmp_path / "sync_key.pub")).stat().st_size > 0
+        assert (Path(tmp_path / "async.pem")).stat().st_size > 0
+        assert (Path(tmp_path / "async.pub")).stat().st_size > 0
+        assert (Path(tmp_path / "vectore.bin")).stat().st_size == 16
